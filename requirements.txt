@@ -1,0 +1,8 @@
+# Core dependencies
+requests>=2.31.0           # HTTP client
+beautifulsoup4>=4.12.0     # HTML parsing for PDF link discovery
+lxml>=5.1.0                # Fast BS4 parser backend
+pdfplumber>=0.11.0         # PDF table + text extraction
+
+# Already available in Python stdlib – listed for documentation purposes only:
+# hashlib, sqlite3, json, logging, pathlib, argparse, re, urllib.parse

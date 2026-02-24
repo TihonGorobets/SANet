@@ -28,7 +28,7 @@
   });
 
   /* ── DAY FILTER ────────────────────────────────────────────────── */
-  const pills    = document.querySelectorAll('.day-pill');
+  const pills    = document.querySelectorAll('.day-pill[data-filter]');
   const sections = document.querySelectorAll('.day-section');
 
   pills.forEach(pill => {
@@ -70,19 +70,27 @@
     });
   });
 
-  /* ── HIGHLIGHT TODAY'S DATES ───────────────────────────────────── */
-  // Current date: 20.02.2026 (Friday, Pi)
-  // Mark today in all date grids if "20.02" appears - not in the data,
-  // but mark the relevant Friday section as today
-  // Today's date as "d.mm" → "20.02" — not in any course dates (semester starts 4.03)
-  // So we just highlight today's day section visually — already done via .day-badge-today
+  /* ── TODAY DETECTION (runs on every page load, always accurate) ── */
+  (function () {
+    // getDay(): 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+    const dayShort   = ['nd', 'pn', 'wt', 'sr', 'czw', 'pi', 'sob'];
+    const todayShort = dayShort[new Date().getDay()];
 
-  /* ── AUTO-SCROLL TO TODAY ON LOAD ─────────────────────────────── */
-  window.addEventListener('load', () => {
-    const todaySection = document.getElementById('day-pi');
+    // Highlight the day pill
+    const todayPill = document.querySelector('.day-pill[data-filter="' + todayShort + '"]');
+    if (todayPill) todayPill.classList.add('today');
+
+    // Insert "Dzisiaj" badge into the day section header
+    const todaySection = document.getElementById('day-' + todayShort);
     if (todaySection) {
-      setTimeout(() => {
-        todaySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 400);
+      const header = todaySection.querySelector('.day-header');
+      if (header && !header.querySelector('.day-badge-today')) {
+        const badge = document.createElement('span');
+        badge.className = 'day-badge-today';
+        badge.textContent = 'Dzisiaj';
+        header.appendChild(badge);
+      }
+      // Auto-scroll to today on load
+      setTimeout(() => todaySection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
     }
-  });
+  })();

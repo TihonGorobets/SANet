@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+
+# Downloaded PDFs (large binary files – not committed)
+data/pdfs/*.pdf
+
+# Logs (uploaded as CI artifacts, not committed)
+logs/*.log
+logs/*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# NOTE: zarzadzanie.html, data/last_hash.txt, data/schedule.db
+#       ARE intentionally committed – the GitHub Actions workflow writes
+#       them back to the repo after each update run.

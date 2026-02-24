@@ -1,0 +1,81 @@
+name: Daily Schedule Update
+
+on:
+  schedule:
+    # Runs every day at 06:00 UTC (adjust CRON_TZ below for Warsaw = UTC+1/+2)
+    - cron: "0 5 * * *"   # 05:00 UTC = 06:00 Warsaw (winter) / 07:00 (summer)
+
+  # Allow manual trigger from the Actions tab
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force update even if PDF is unchanged"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  update-schedule:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to commit the regenerated HTML back to the repo
+
+    steps:
+      # ── 1. Check out ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ── 2. Set up Python ─────────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # ── 3. Install dependencies ───────────────────────────────────────────────
+      - name: Install dependencies
+        run: pip install --upgrade -r requirements.txt
+
+      # ── 4. Restore hash + DB cache across runs ────────────────────────────────
+      - name: Restore data cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/last_hash.txt
+            data/schedule.db
+          key: schedule-data-${{ runner.os }}
+          restore-keys: |
+            schedule-data-
+
+      # ── 5. Run the updater ────────────────────────────────────────────────────
+      - name: Run schedule updater
+        run: |
+          FORCE_FLAG=""
+          if [[ "${{ github.event.inputs.force }}" == "true" ]]; then
+            FORCE_FLAG="--force"
+          fi
+          python -m scraper.main $FORCE_FLAG --log-level INFO
+
+      # ── 6. Commit changed files back to repo ─────────────────────────────────
+      - name: Commit and push changes
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html data/last_hash.txt data/schedule.db || true
+          if git diff --cached --quiet; then
+            echo "Nothing changed – skipping commit."
+          else
+            git commit -m "chore: auto-update Zarządzanie schedule [$(date -u +'%Y-%m-%d %H:%M UTC')]"
+            git push
+          fi
+
+      # ── 7. Upload logs as artifact ────────────────────────────────────────────
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: schedule-logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 14

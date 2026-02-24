@@ -445,6 +445,30 @@
     .type-badge.kw  { color: var(--clr-kw);  background: var(--clr-kw-bg); }
     .type-badge.lab { color: var(--clr-lab); background: var(--clr-lab-bg); }
 
+    /* badge container – allows type-badge + mode-badge side by side */
+    .badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    /* mode badges */
+    .mode-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: var(--radius-badge);
+      white-space: nowrap;
+    }
+    .mode-badge.mode-teams { color: #1D4ED8; background: #DBEAFE; }
+    .mode-badge.mode-sala  { color: #065F46; background: #D1FAE5; }
+    .mode-badge.mode-zdal  { color: #92400E; background: #FEF3C7; }
+    .mode-badge.mode-hyb   { color: #6B21A8; background: #F3E8FF; }
+
     .card-meta {
       display: flex;
       flex-wrap: wrap;
