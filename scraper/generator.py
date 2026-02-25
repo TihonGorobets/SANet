@@ -289,6 +289,17 @@ def generate_html(
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data:;
+    connect-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'none';
+  " />
   <title>Zarządzanie II — Plan Zajęć</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -360,7 +371,7 @@ def generate_html(
   <footer class="site-footer">
     <p>Plan wygenerowany: <strong>{now}</strong> &bull;
        Grupy: <strong>{_escape(groups_summary)}</strong> &bull;
-       Źródło: <a href="https://san.edu.pl/plany-zajec-warszawa/studia-stacjonarne" target="_blank">san.edu.pl</a></p>
+       Źródło: <a href="https://san.edu.pl/plany-zajec-warszawa/studia-stacjonarne" target="_blank" rel="noopener noreferrer">san.edu.pl</a></p>
     <p style="margin-top:4px">Prosimy o sprawdzanie planu przed zajęciami. Plan oraz sale mogą ulec zmianie.</p>
   </footer>
 

@@ -64,9 +64,13 @@
 
       grid.classList.toggle('visible', !isOpen);
       toggle.classList.toggle('open', !isOpen);
-      toggle.innerHTML = isOpen
-        ? `<span class="arrow">›</span> Pokaż terminy (${grid.children.length} zajęć)`
-        : `<span class="arrow">›</span> Ukryj terminy`;
+      const arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.textContent = '›';
+      toggle.textContent = isOpen
+        ? ` Pokaż terminy (${grid.children.length} zajęć)`
+        : ' Ukryj terminy';
+      toggle.prepend(arrow);
     });
   });
 
