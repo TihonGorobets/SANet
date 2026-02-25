@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS schedule (
     time_start  TEXT    DEFAULT '',
     time_end    TEXT    DEFAULT '',
     dates       TEXT    DEFAULT '[]',
+    is_changed  INTEGER DEFAULT 0,
     created_at  TEXT    NOT NULL
 );
 
@@ -134,6 +135,42 @@ def insert_entries(entries: list[dict], db_path: Path = DB_PATH) -> int:
 
     logger.info("Inserted %d schedule row(s).", len(rows))
     return len(rows)
+
+
+def fetch_fingerprints(db_path: Path = DB_PATH) -> set[tuple]:
+    """
+    Return a set of fingerprint tuples for the current entries.
+    Used before clearing the table so changes can be detected after re-insert.
+    A fingerprint captures: group, subject, day, start time, end time, mode, room.
+    """
+    with _connect(db_path) as conn:
+        cur = conn.execute(
+            "SELECT group_name, subject, day, time_start, time_end, class_mode, room FROM schedule"
+        )
+        return {tuple(row) for row in cur.fetchall()}
+
+
+def mark_changed_entries(prev: set[tuple], db_path: Path = DB_PATH) -> int:
+    """
+    Mark newly inserted rows whose fingerprint was absent in *prev* as changed.
+    Returns the count of changed entries.
+    """
+    with _connect(db_path) as conn:
+        cur = conn.execute(
+            "SELECT id, group_name, subject, day, time_start, time_end, class_mode, room FROM schedule"
+        )
+        changed_ids = [
+            row[0] for row in cur.fetchall()
+            if tuple(row[1:]) not in prev
+        ]
+        if changed_ids:
+            conn.executemany(
+                "UPDATE schedule SET is_changed = 1 WHERE id = ?",
+                [(i,) for i in changed_ids],
+            )
+    if changed_ids:
+        logger.info("%d entr%s marked as changed.", len(changed_ids), "y" if len(changed_ids) == 1 else "ies")
+    return len(changed_ids)
 
 
 def fetch_all(db_path: Path = DB_PATH) -> list[dict]:

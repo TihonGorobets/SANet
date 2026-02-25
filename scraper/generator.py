@@ -115,6 +115,7 @@ def _card_html(entry: dict, card_id: str) -> str:
     raw_room = entry.get("room", "")
     group = _escape(entry.get("group_name", ""))
     cmode = entry.get("class_mode", "")
+    is_changed = bool(entry.get("is_changed", 0))
 
     # Multi-room display
     if raw_room and "," in raw_room:
@@ -144,8 +145,15 @@ def _card_html(entry: dict, card_id: str) -> str:
 
     time_sep_style = ' style="min-height:28px"' if dur and "×" in dur else ""
 
+    change_banner = (
+        '        <div class="change-badge">'
+        '<span class="change-icon">\u26a0</span> Zmiana w planie</div>'
+        if is_changed else ""
+    )
+
     lines = [
         f'      <article class="class-card" data-type="{css}" data-group="{group}">',
+        change_banner,
         f'        <div class="card-time">',
         f'          <span class="time-start">{ts}</span>',
         f'          <div class="time-sep"{time_sep_style}></div>',

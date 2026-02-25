@@ -237,19 +237,40 @@
     }
 
     .day-pill.today {
-      border-color: var(--clr-primary-mid);
+      border-color: #22C55E;
+      background: rgba(34,197,94,.10);
+      color: var(--text-primary);
     }
 
     .day-pill.today::after {
       content: '';
       display: inline-block;
-      width: 5px; height: 5px;
+      width: 7px; height: 7px;
       border-radius: 50%;
-      background: #22C55E;
+      background: #16A34A;
       margin-left: 6px;
       vertical-align: middle;
       position: relative;
       top: -1px;
+      box-shadow: 0 0 0 0 rgba(34,197,94,.6);
+      animation: today-pulse 1.8s ease-in-out infinite;
+    }
+
+    .day-pill.today.active {
+      background: var(--clr-primary);
+      border-color: var(--clr-primary);
+      color: #fff;
+    }
+
+    /* suppress dot when pill is also active (blue bg makes it redundant) */
+    .day-pill.today.active::after {
+      display: none;
+    }
+
+    @keyframes today-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
+      60%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -445,6 +466,25 @@
     .type-badge.kw  { color: var(--clr-kw);  background: var(--clr-kw-bg); }
     .type-badge.lab { color: var(--clr-lab); background: var(--clr-lab-bg); }
 
+    /* change alert banner — appears at very top of a card when entry is new/modified */
+    .change-badge {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #92400E;
+      background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%);
+      border-bottom: 1.5px solid #FCD34D;
+      padding: 6px 22px;
+      margin: -20px -22px 12px -22px;
+      border-radius: var(--radius-card) var(--radius-card) 0 0;
+    }
+    .change-icon { font-size: 13px; }
+
     /* badge container – allows type-badge + mode-badge side by side */
     .badge-group {
       display: flex;
@@ -611,26 +651,66 @@
     @media (max-width: 540px) {
       .class-card {
         grid-template-columns: 1fr;
-        gap: 14px 0;
-        padding: 18px 16px;
+        gap: 0;
+        padding: 0;
+        overflow: hidden;
       }
 
+      /* Time accent bar — full width, colored top strip */
       .card-time {
         flex-direction: row;
         align-items: center;
-        gap: 6px;
         min-width: unset;
+        padding: 10px 16px;
+        background: color-mix(in srgb, var(--card-accent, var(--clr-primary)) 12%, transparent);
+        border-bottom: 1.5px solid color-mix(in srgb, var(--card-accent, var(--clr-primary)) 25%, transparent);
+        gap: 0;
+      }
+
+      .time-start {
+        font-size: 15px;
+        color: var(--card-accent, var(--clr-primary));
+        font-weight: 700;
       }
 
       .time-sep {
-        width: 18px; height: 2px;
+        width: auto;
+        height: auto;
+        flex: unset;
         min-height: unset; max-height: unset;
-        margin: 0;
+        background: none;
+        margin: 0 6px;
+        font-size: 13px;
+        color: var(--text-muted);
+        border-radius: 0;
       }
 
-      .time-end { font-size: 14px; color: var(--text-secondary); }
+      /* Replace the vertical bar with an arrow using ::before */
+      .time-sep::before {
+        content: '→';
+      }
 
-      .time-duration { margin-top: 0; margin-left: 8px; }
+      .time-end {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .time-duration {
+        margin-top: 0;
+        margin-left: auto;
+        font-size: 11px;
+        background: color-mix(in srgb, var(--card-accent, var(--clr-primary)) 15%, transparent);
+        color: var(--card-accent, var(--clr-primary));
+        padding: 2px 8px;
+        border-radius: 100px;
+        font-weight: 600;
+      }
+
+      /* Content area gets standard padding below the time bar */
+      .card-content {
+        padding: 14px 16px;
+      }
 
       .card-top { flex-direction: column; }
 
