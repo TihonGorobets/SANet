@@ -712,6 +712,14 @@
         padding: 14px 16px;
       }
 
+      /* change-badge: reset desktop bleed-margins; card overflow:hidden clips corners */
+      .change-badge {
+        margin: 0;
+        border-radius: 0;
+        padding: 7px 16px;
+        font-size: 11px;
+      }
+
       .card-top { flex-direction: column; }
 
       .site-header { flex-wrap: wrap; }
