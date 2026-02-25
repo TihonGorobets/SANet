@@ -1,0 +1,6 @@
+# Always treat the auto-generated data files as binary.
+# When a rebase/merge conflict arises (e.g. GitHub Actions committed a new DB
+# while you also made local changes), git will keep OUR version instead of
+# attempting an impossible binary merge.
+data/schedule.db      binary merge=ours
+data/last_hash.txt    merge=ours
