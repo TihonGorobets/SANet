@@ -25,7 +25,7 @@ import sys
 from datetime import datetime
 
 from .config import TARGET_GROUPS
-from .database import clear_schedule, fetch_fingerprints, init_db, insert_entries, mark_changed_entries, set_meta
+from .database import clear_changed_flags, clear_schedule, fetch_fingerprints, init_db, insert_entries, mark_changed_entries, set_meta
 from .detector import has_changed
 from .fetcher import download_pdf, find_pdf_url
 from .generator import generate_html
@@ -67,7 +67,14 @@ def run(*, force: bool = False, dry_run: bool = False) -> int:
     changed = force or has_changed(pdf_path)
 
     if not changed:
-        logger.info("No changes detected – nothing to do.")
+        logger.info("PDF unchanged – clearing any stale change flags and refreshing HTML.")
+        if not dry_run:
+            try:
+                init_db()
+                clear_changed_flags()
+                generate_html()
+            except Exception as exc:
+                logger.warning("Could not clear change flags: %s", exc)
         return 0
 
     # ── Step 3: parse ─────────────────────────────────────────────────────────

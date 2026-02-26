@@ -150,11 +150,22 @@ def fetch_fingerprints(db_path: Path = DB_PATH) -> set[tuple]:
         return {tuple(row) for row in cur.fetchall()}
 
 
+def clear_changed_flags(db_path: Path = DB_PATH) -> None:
+    """Reset all is_changed flags to 0 (called when PDF is unchanged)."""
+    with _connect(db_path) as conn:
+        conn.execute("UPDATE schedule SET is_changed = 0")
+    logger.debug("Cleared all is_changed flags.")
+
+
 def mark_changed_entries(prev: set[tuple], db_path: Path = DB_PATH) -> int:
     """
     Mark newly inserted rows whose fingerprint was absent in *prev* as changed.
+    Returns 0 immediately when *prev* is empty (fresh DB – nothing to compare).
     Returns the count of changed entries.
     """
+    if not prev:
+        logger.debug("mark_changed_entries: prev set is empty (fresh DB) – skipping.")
+        return 0
     with _connect(db_path) as conn:
         cur = conn.execute(
             "SELECT id, group_name, subject, day, time_start, time_end, class_mode, room FROM schedule"
