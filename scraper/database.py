@@ -141,11 +141,11 @@ def fetch_fingerprints(db_path: Path = DB_PATH) -> set[tuple]:
     """
     Return a set of fingerprint tuples for the current entries.
     Used before clearing the table so changes can be detected after re-insert.
-    A fingerprint captures: group, subject, day, start time, end time, mode, room.
+    A fingerprint captures: group, subject, day, start time, end time, mode, room, dates.
     """
     with _connect(db_path) as conn:
         cur = conn.execute(
-            "SELECT group_name, subject, day, time_start, time_end, class_mode, room FROM schedule"
+            "SELECT group_name, subject, day, time_start, time_end, class_mode, room, dates FROM schedule"
         )
         return {tuple(row) for row in cur.fetchall()}
 
@@ -168,7 +168,7 @@ def mark_changed_entries(prev: set[tuple], db_path: Path = DB_PATH) -> int:
         return 0
     with _connect(db_path) as conn:
         cur = conn.execute(
-            "SELECT id, group_name, subject, day, time_start, time_end, class_mode, room FROM schedule"
+            "SELECT id, group_name, subject, day, time_start, time_end, class_mode, room, dates FROM schedule"
         )
         changed_ids = [
             row[0] for row in cur.fetchall()
