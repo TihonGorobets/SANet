@@ -45,9 +45,9 @@ jobs:
           path: |
             data/last_hash.txt
             data/schedule.db
-          key: schedule-data-${{ runner.os }}
+          key: schedule-data-v2-${{ runner.os }}
           restore-keys: |
-            schedule-data-
+            schedule-data-v2-
 
       # ── 5. Run the updater ────────────────────────────────────────────────────
       - name: Run schedule updater

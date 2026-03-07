@@ -79,9 +79,16 @@ def _connect(db_path: Path = DB_PATH) -> Generator[sqlite3.Connection, None, Non
 # ── public API ────────────────────────────────────────────────────────────────
 
 def init_db(db_path: Path = DB_PATH) -> None:
-    """Create tables if they do not already exist."""
+    """Create tables if they do not already exist, and run pending migrations."""
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     with _connect(db_path) as conn:
         conn.executescript(_DDL)
+        # Migration: add is_changed column for DBs created before this column existed
+        try:
+            conn.execute("ALTER TABLE schedule ADD COLUMN is_changed INTEGER DEFAULT 0")
+            logger.info("Migration: added is_changed column to schedule table.")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
     logger.info("Database initialised at %s", db_path)
 
 
