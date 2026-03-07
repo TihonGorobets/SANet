@@ -22,11 +22,7 @@
       'dates-hide':    'Ukryj terminy',
       'empty-day':     'Brak zajęć w tym dniu',
       'empty-group':   g => `Brak zajęć dla grupy ${g}`,
-      'groups': {
-        'Zarządzanie II gr1': 'Zarządzanie II gr1',
-        'Zarządzanie II gr2': 'Zarządzanie II gr2',
-        'Zarządzanie II gr3': 'Zarządzanie II gr3',
-      },
+      'group-prefix':  'Zarządzanie II',
       'change-badge':  'Zmiana w planie',
       'change-new':    '✨ Nowe zajęcia',
       'change-dates':  'zaktualizowane',
@@ -69,11 +65,7 @@
       'dates-hide':    'Сховати терміни',
       'empty-day':     'Немає занять у цей день',
       'empty-group':   g => `Немає занять для групи ${g}`,
-      'groups': {
-        'Zarządzanie II gr1': 'Менеджмент II гр1',
-        'Zarządzanie II gr2': 'Менеджмент II гр2',
-        'Zarządzanie II gr3': 'Менеджмент II гр3',
-      },
+      'group-prefix':  'Менеджмент II',
       'change-badge':  'Зміна в розкладі',
       'change-new':    '✨ Нове заняття',
       'change-dates':  'оновлено',
@@ -116,11 +108,7 @@
       'dates-hide':    'Hide dates',
       'empty-day':     'No classes today',
       'empty-group':   g => `No classes for group ${g}`,
-      'groups': {
-        'Zarządzanie II gr1': 'Management II gr1',
-        'Zarządzanie II gr2': 'Management II gr2',
-        'Zarządzanie II gr3': 'Management II gr3',
-      },
+      'group-prefix':  'Management II',
       'change-badge':  'Schedule change',
       'change-new':    '✨ New class',
       'change-dates':  'updated',
@@ -205,11 +193,13 @@
       toggle.prepend(arrow);
     });
 
-    // Group filter buttons
+    // Group filter buttons — extract number, apply translated prefix
     document.querySelectorAll('.day-pill[data-i18n-group]').forEach(btn => {
-      const key = btn.dataset.i18nGroup;
-      const translated = ((LANGS[currentLang] || LANGS.pl).groups || {})[key];
-      btn.textContent = translated || key;
+      const raw   = btn.dataset.i18nGroup;
+      const match = raw.match(/(\d+)$/);
+      if (match) {
+        btn.textContent = `${t('group-prefix')} gr${match[1]}`;
+      }
     });
 
     // Any visible dynamic empty-group messages
