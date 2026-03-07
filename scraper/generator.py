@@ -103,6 +103,37 @@ _MODE_BADGE: dict[str, tuple[str, str]] = {
 }
 
 
+def _render_change_details(details_json: str | None) -> str:
+    """Render a <ul class="change-details"> from the stored JSON diff, or '' if none."""
+    if not details_json:
+        return ""
+    try:
+        changes: list[dict] = json.loads(details_json)
+    except (json.JSONDecodeError, TypeError):
+        return ""
+    if not changes:
+        return ""
+    items = []
+    for ch in changes:
+        field = ch.get("field", "")
+        label = _escape(str(ch.get("label", field)))
+        if field == "new":
+            items.append('<li class="change-detail-item change-new">✨ Nowe zajęcia</li>')
+        elif field == "dates":
+            items.append(f'<li class="change-detail-item"><span class="change-field">{label}:</span>'
+                         f' <span class="change-indicator">zaktualizowane</span></li>')
+        else:
+            old = _escape(str(ch.get("old", "")))
+            new = _escape(str(ch.get("new", "")))
+            items.append(f'<li class="change-detail-item"><span class="change-field">{label}:</span>'
+                         f' <span class="old-val">{old}</span>'
+                         f'<span class="change-arrow"> → </span>'
+                         f'<span class="new-val">{new}</span></li>')
+    if not items:
+        return ""
+    return '<ul class="change-details">' + "".join(items) + "</ul>"
+
+
 def _card_html(entry: dict, card_id: str) -> str:
     """Render a single ``<article class="class-card">`` block."""
     ts    = _escape(entry.get("time_start", ""))
@@ -116,6 +147,7 @@ def _card_html(entry: dict, card_id: str) -> str:
     group = _escape(entry.get("group_name", ""))
     cmode = entry.get("class_mode", "")
     is_changed = bool(entry.get("is_changed", 0))
+    change_details_str: str | None = entry.get("change_details") if is_changed else None
 
     # Multi-room display
     if raw_room and "," in raw_room:
@@ -145,11 +177,15 @@ def _card_html(entry: dict, card_id: str) -> str:
 
     time_sep_style = ' style="min-height:28px"' if dur and "×" in dur else ""
 
-    change_banner = (
-        '        <div class="change-badge">'
-        '<span class="change-icon">\u26a0</span> Zmiana w planie</div>'
-        if is_changed else ""
-    )
+    if is_changed:
+        details_html = _render_change_details(change_details_str)
+        change_banner = (
+            f'        <div class="change-badge">'
+            f'<span class="change-icon">\u26a0</span> Zmiana w planie'
+            f'{details_html}</div>'
+        )
+    else:
+        change_banner = ""
 
     lines = [
         f'      <article class="class-card" data-type="{css}" data-group="{group}">',

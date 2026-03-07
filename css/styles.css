@@ -469,9 +469,7 @@
     /* change alert banner — appears at very top of a card when entry is new/modified */
     .change-badge {
       grid-column: 1 / -1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: block;
       font-size: 11.5px;
       font-weight: 700;
       letter-spacing: .04em;
@@ -479,11 +477,32 @@
       color: #92400E;
       background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%);
       border-bottom: 1.5px solid #FCD34D;
-      padding: 6px 22px;
+      padding: 6px 22px 8px;
       margin: -20px -22px 12px -22px;
       border-radius: var(--radius-card) var(--radius-card) 0 0;
     }
-    .change-icon { font-size: 13px; }
+    .change-icon { font-size: 13px; margin-right: 4px; }
+
+    /* change detail list inside the badge */
+    .change-details {
+      list-style: none;
+      margin: 5px 0 0 2px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .change-detail-item { display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap; }
+    .change-field       { font-weight: 700; white-space: nowrap; }
+    .old-val            { color: #B45309; text-decoration: line-through; opacity: .8; }
+    .change-arrow       { color: #92400E; font-weight: 900; }
+    .new-val            { color: #065F46; font-weight: 700; }
+    .change-indicator   { color: #D97706; font-style: italic; }
+    .change-new         { color: #065F46; font-weight: 700; }
 
     /* badge container – allows type-badge + mode-badge side by side */
     .badge-group {
@@ -716,9 +735,10 @@
       .change-badge {
         margin: 0;
         border-radius: 0;
-        padding: 7px 16px;
+        padding: 7px 16px 9px;
         font-size: 11px;
       }
+      .change-details { font-size: 10.5px; }
 
       .card-top { flex-direction: column; }
 

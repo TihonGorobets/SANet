@@ -46,9 +46,10 @@ CREATE TABLE IF NOT EXISTS schedule (
     day         TEXT    DEFAULT '',
     time_start  TEXT    DEFAULT '',
     time_end    TEXT    DEFAULT '',
-    dates       TEXT    DEFAULT '[]',
-    is_changed  INTEGER DEFAULT 0,
-    created_at  TEXT    NOT NULL
+    dates          TEXT    DEFAULT '[]',
+    is_changed     INTEGER DEFAULT 0,
+    change_details TEXT    DEFAULT NULL,
+    created_at     TEXT    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS meta (
@@ -87,6 +88,11 @@ def init_db(db_path: Path = DB_PATH) -> None:
         try:
             conn.execute("ALTER TABLE schedule ADD COLUMN is_changed INTEGER DEFAULT 0")
             logger.info("Migration: added is_changed column to schedule table.")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        try:
+            conn.execute("ALTER TABLE schedule ADD COLUMN change_details TEXT DEFAULT NULL")
+            logger.info("Migration: added change_details column to schedule table.")
         except sqlite3.OperationalError:
             pass  # Column already exists
     logger.info("Database initialised at %s", db_path)
@@ -144,51 +150,82 @@ def insert_entries(entries: list[dict], db_path: Path = DB_PATH) -> int:
     return len(rows)
 
 
-def fetch_fingerprints(db_path: Path = DB_PATH) -> set[tuple]:
+def fetch_fingerprints(db_path: Path = DB_PATH) -> dict:
     """
-    Return a set of fingerprint tuples for the current entries.
-    Used before clearing the table so changes can be detected after re-insert.
-    A fingerprint captures: group, subject, day, start time, end time, mode, room, dates.
+    Return a dict mapping (group_name, subject, day) → field snapshot.
+    Used before clearing the table so per-field changes can be detected after re-insert.
     """
     with _connect(db_path) as conn:
         cur = conn.execute(
-            "SELECT group_name, subject, day, time_start, time_end, class_mode, room, dates FROM schedule"
+            "SELECT group_name, subject, day, time_start, time_end, class_mode, room, instructor, dates FROM schedule"
         )
-        return {tuple(row) for row in cur.fetchall()}
+        result: dict = {}
+        for row in cur.fetchall():
+            key = (row[0], row[1], row[2])
+            result[key] = {
+                "time_start": row[3],
+                "time_end":   row[4],
+                "class_mode": row[5],
+                "room":       row[6],
+                "instructor": row[7],
+                "dates":      row[8],
+            }
+        return result
 
 
 def clear_changed_flags(db_path: Path = DB_PATH) -> None:
-    """Reset all is_changed flags to 0 (called when PDF is unchanged)."""
+    """Reset all is_changed flags and change_details (called when PDF is unchanged)."""
     with _connect(db_path) as conn:
-        conn.execute("UPDATE schedule SET is_changed = 0")
-    logger.debug("Cleared all is_changed flags.")
+        conn.execute("UPDATE schedule SET is_changed = 0, change_details = NULL")
+    logger.debug("Cleared all is_changed flags and change_details.")
 
 
-def mark_changed_entries(prev: set[tuple], db_path: Path = DB_PATH) -> int:
+def mark_changed_entries(prev: dict, db_path: Path = DB_PATH) -> int:
     """
-    Mark newly inserted rows whose fingerprint was absent in *prev* as changed.
+    Compare newly inserted rows against *prev* snapshots field-by-field.
+    Stores a JSON list of changed fields in change_details.
     Returns 0 immediately when *prev* is empty (fresh DB – nothing to compare).
     Returns the count of changed entries.
     """
     if not prev:
-        logger.debug("mark_changed_entries: prev set is empty (fresh DB) – skipping.")
+        logger.debug("mark_changed_entries: prev dict is empty (fresh DB) – skipping.")
         return 0
     with _connect(db_path) as conn:
         cur = conn.execute(
-            "SELECT id, group_name, subject, day, time_start, time_end, class_mode, room, dates FROM schedule"
+            "SELECT id, group_name, subject, day, time_start, time_end, class_mode, room, instructor, dates FROM schedule"
         )
-        changed_ids = [
-            row[0] for row in cur.fetchall()
-            if tuple(row[1:]) not in prev
-        ]
-        if changed_ids:
+        updates: list[tuple] = []
+        for row in cur.fetchall():
+            id_, group, subject, day = row[0], row[1], row[2], row[3]
+            ts, te, cmode, room, instr, dates = row[4], row[5], row[6], row[7], row[8], row[9]
+            key = (group, subject, day)
+            if key not in prev:
+                changes: list[dict] = [{"field": "new", "label": "Nowe zajęcia"}]
+            else:
+                old = prev[key]
+                changes = []
+                for field, label, new_val in [
+                    ("time_start", "Godzina od",  ts),
+                    ("time_end",   "Godzina do",  te),
+                    ("room",       "Sala",         room),
+                    ("class_mode", "Tryb",         cmode),
+                    ("instructor", "Prowadzący",   instr),
+                    ("dates",      "Terminy",      dates),
+                ]:
+                    if old.get(field, "") != new_val:
+                        changes.append({"field": field, "label": label,
+                                        "old": old.get(field, ""), "new": new_val})
+            if changes:
+                updates.append((json.dumps(changes, ensure_ascii=False), id_))
+        if updates:
             conn.executemany(
-                "UPDATE schedule SET is_changed = 1 WHERE id = ?",
-                [(i,) for i in changed_ids],
+                "UPDATE schedule SET is_changed = 1, change_details = ? WHERE id = ?",
+                updates,
             )
-    if changed_ids:
-        logger.info("%d entr%s marked as changed.", len(changed_ids), "y" if len(changed_ids) == 1 else "ies")
-    return len(changed_ids)
+    count = len(updates)
+    if count:
+        logger.info("%d entr%s marked as changed.", count, "y" if count == 1 else "ies")
+    return count
 
 
 def fetch_all(db_path: Path = DB_PATH) -> list[dict]:
