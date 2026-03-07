@@ -118,14 +118,17 @@ def _render_change_details(details_json: str | None) -> str:
         field = ch.get("field", "")
         label = _escape(str(ch.get("label", field)))
         if field == "new":
-            items.append('<li class="change-detail-item change-new">✨ Nowe zajęcia</li>')
+            items.append('<li class="change-detail-item change-new">'
+                         '<span data-i18n="change-new">✨ Nowe zajęcia</span></li>')
         elif field == "dates":
-            items.append(f'<li class="change-detail-item"><span class="change-field">{label}:</span>'
-                         f' <span class="change-indicator">zaktualizowane</span></li>')
+            items.append(f'<li class="change-detail-item">'
+                         f'<span class="change-field" data-i18n="change-field-dates">{label}:</span>'
+                         f' <span class="change-indicator" data-i18n="change-dates">zaktualizowane</span></li>')
         else:
             old = _escape(str(ch.get("old", "")))
             new = _escape(str(ch.get("new", "")))
-            items.append(f'<li class="change-detail-item"><span class="change-field">{label}:</span>'
+            items.append(f'<li class="change-detail-item">'
+                         f'<span class="change-field" data-i18n="change-field-{field}">{label}:</span>'
                          f' <span class="old-val">{old}</span>'
                          f'<span class="change-arrow"> → </span>'
                          f'<span class="new-val">{new}</span></li>')
@@ -181,7 +184,8 @@ def _card_html(entry: dict, card_id: str) -> str:
         details_html = _render_change_details(change_details_str)
         change_banner = (
             f'        <div class="change-badge">'
-            f'<span class="change-icon">\u26a0</span> Zmiana w planie'
+            f'<span class="change-icon">\u26a0</span>'
+            f' <span data-i18n="change-badge">Zmiana w planie</span>'
             f'{details_html}</div>'
         )
     else:
@@ -268,7 +272,7 @@ def _day_section_html(
         f'\n  <!-- ── {day_name.upper()} ──────────────────────────────────────── -->\n'
         f'  <section class="day-section" data-day="{short}" id="day-{short}">\n'
         f'    <div class="day-header">\n'
-        f'      <span class="day-name">{day_name}</span>\n'
+        f'      <span class="day-name" data-i18n-day="{short}">{day_name}</span>\n'
         f'      <span class="day-name-pl">{en_name}</span>{today_badge}\n'
         f'      <div class="day-divider"></div>\n'
         f'    </div>'
@@ -279,7 +283,7 @@ def _day_section_html(
 
 def _build_group_tabs(groups: list[str]) -> str:
     """Build a tab bar so visitors can filter by group."""
-    buttons = ['    <button class="day-pill active" data-group="all">Wszystkie grupy</button>']
+    buttons = ['    <button class="day-pill active" data-group="all" data-i18n="filter-all-groups">Wszystkie grupy</button>']
     for g in groups:
         buttons.append(f'    <button class="day-pill" data-group="{_escape(g)}">{_escape(g)}</button>')
     return "\n".join(buttons)
@@ -321,7 +325,7 @@ def generate_html(
         day_pills.append(f'    <button class="day-pill" data-filter="{short}">{day_name}</button>')
 
     day_pills_str = (
-        '    <button class="day-pill active" data-filter="all">Wszystkie</button>\n'
+        '    <button class="day-pill active" data-filter="all" data-i18n="filter-all-days">Wszystkie</button>\n'
         + "\n".join(day_pills)
     )
 
@@ -357,14 +361,19 @@ def generate_html(
   <!-- ── HEADER ───────────────────────────────────────────────────────────── -->
   <header class="site-header">
     <div class="header-brand">
-      <span class="header-eyebrow">Społeczna Akademia Nauk · Warszawa</span>
-      <h1 class="header-title">Zarządzanie II — Plan Zajęć</h1>
-      <p class="header-subtitle">Grupy: gr1 &bull; gr2 &bull; gr3 &mdash; studia stacjonarne &bull; rok akad. 2025/26</p>
+      <span class="header-eyebrow" data-i18n="hdr-eyebrow">Społeczna Akademia Nauk · Warszawa</span>
+      <h1 class="header-title" data-i18n="hdr-title">Zarządzanie II — Plan Zajęć</h1>
+      <p class="header-subtitle" data-i18n="hdr-subtitle">Grupy: gr1 · gr2 · gr3 — studia stacjonarne · rok akad. 2025/26</p>
     </div>
     <div class="header-actions">
+      <div class="lang-switcher" role="group" aria-label="Language">
+        <button class="lang-btn active" data-lang="pl">PL</button>
+        <button class="lang-btn" data-lang="ua">UA</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
       <button class="wb-open-btn" id="wbOpenBtn" aria-label="Otwórz tablicę">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Whiteboard
+        <span data-i18n="wb-btn">Whiteboard</span>
       </button>
       <div class="theme-toggle" id="themeToggle" role="button" aria-label="Przełącz tryb ciemny" tabindex="0">
         <span class="theme-toggle-label" id="themeLabel">Jasny</span>
@@ -377,21 +386,21 @@ def generate_html(
 
   <!-- ── STATS BAR ─────────────────────────────────────────────────────────── -->
   <div class="stats-bar">
-    <div class="stat-chip"><span class="dot" style="background:#2563EB"></span>{len(entries)} zajęć</div>
-    <div class="stat-chip"><span class="dot" style="background:#22C55E"></span>{len(groups)} grup</div>
-    <div class="stat-chip"><span class="dot" style="background:#7C3AED"></span>Sem. letni 2025/26</div>
-    <div class="stat-chip"><span class="dot" style="background:#F59E0B"></span>Łucka 11, Warszawa</div>
+    <div class="stat-chip"><span class="dot" style="background:#2563EB"></span><span data-i18n="stat-entries" data-n="{len(entries)}">{len(entries)} zajęć</span></div>
+    <div class="stat-chip"><span class="dot" style="background:#22C55E"></span><span data-i18n="stat-groups" data-n="{len(groups)}">{len(groups)} grup</span></div>
+    <div class="stat-chip"><span class="dot" style="background:#7C3AED"></span><span data-i18n="stat-semester">Sem. letni 2025/26</span></div>
+    <div class="stat-chip"><span class="dot" style="background:#F59E0B"></span><span data-i18n="stat-location">Łucka 11, Warszawa</span></div>
   </div>
 
   <!-- ── GROUP FILTER ─────────────────────────────────────────────────────── -->
   <div class="day-filter" role="group" aria-label="Filtruj według grupy" id="groupFilter">
-    <span class="day-filter-label">Grupa:</span>
+    <span class="day-filter-label" data-i18n="filter-group-label">Grupa:</span>
 {_build_group_tabs(groups)}
   </div>
 
   <!-- ── DAY FILTER ────────────────────────────────────────────────────────── -->
   <div class="day-filter" role="group" aria-label="Filtruj według dnia">
-    <span class="day-filter-label">Dzień:</span>
+    <span class="day-filter-label" data-i18n="filter-day-label">Dzień:</span>
 {day_pills_str}
   </div>
 
@@ -402,21 +411,21 @@ def generate_html(
 
   <!-- ── LEGEND ─────────────────────────────────────────────────────────────── -->
   <div class="legend">
-    <span class="legend-title">Legenda typów zajęć</span>
-    <div class="legend-item"><span class="legend-dot" style="background:#2563EB"></span>Wykład (wyk)</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#2563EB"></span>Warsztaty (war)</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#059669"></span>Ćwiczenia (cw)</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#D97706"></span>Konwersatorium (kw)</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#7C3AED"></span>Laboratorium (lab)</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#BE185D"></span>Seminarium (sem)</div>
+    <span class="legend-title" data-i18n="legend-title">Legenda typów zajęć</span>
+    <div class="legend-item"><span class="legend-dot" style="background:#2563EB"></span><span data-i18n="legend-wyk">Wykład (wyk)</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:#2563EB"></span><span data-i18n="legend-war">Warsztaty (war)</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:#059669"></span><span data-i18n="legend-cw">Ćwiczenia (cw)</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:#D97706"></span><span data-i18n="legend-kw">Konwersatorium (kw)</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:#7C3AED"></span><span data-i18n="legend-lab">Laboratorium (lab)</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:#BE185D"></span><span data-i18n="legend-sem">Seminarium (sem)</span></div>
   </div>
 
   <!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
   <footer class="site-footer">
-    <p>Plan wygenerowany: <strong>{now}</strong> &bull;
-       Grupy: <strong>{_escape(groups_summary)}</strong> &bull;
-       Źródło: <a href="https://san.edu.pl/plany-zajec-warszawa/studia-stacjonarne" target="_blank" rel="noopener noreferrer">san.edu.pl</a></p>
-    <p style="margin-top:4px">Prosimy o sprawdzanie planu przed zajęciami. Plan oraz sale mogą ulec zmianie.</p>
+    <p><span data-i18n="footer-generated">Plan wygenerowany:</span> <strong>{now}</strong> &bull;
+       <span data-i18n="footer-groups">Grupy:</span> <strong>{_escape(groups_summary)}</strong> &bull;
+       <span data-i18n="footer-source">Źródło:</span> <a href="https://san.edu.pl/plany-zajec-warszawa/studia-stacjonarne" target="_blank" rel="noopener noreferrer">san.edu.pl</a></p>
+    <p style="margin-top:4px" data-i18n="footer-disclaimer">Prosimy o sprawdzanie planu przed zajęciami. Plan oraz sale mogą ulec zmianie.</p>
   </footer>
 
 </div><!-- /page-wrapper -->
@@ -449,8 +458,8 @@ def generate_html(
             list.after(emptyMsg);
           }}
           emptyMsg.textContent = g === 'all'
-            ? 'Brak zajęć w tym dniu'
-            : `Brak zajęć dla grupy ${{g}}`;
+            ? window.SAN_I18N.t('empty-day')
+            : window.SAN_I18N.t('empty-group', g);
           emptyMsg.style.display = '';
           list.style.display = 'none';
         }} else {{
