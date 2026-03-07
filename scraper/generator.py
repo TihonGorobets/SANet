@@ -285,7 +285,10 @@ def _build_group_tabs(groups: list[str]) -> str:
     """Build a tab bar so visitors can filter by group."""
     buttons = ['    <button class="day-pill active" data-group="all" data-i18n="filter-all-groups">Wszystkie grupy</button>']
     for g in groups:
-        buttons.append(f'    <button class="day-pill" data-group="{_escape(g)}" data-i18n-group="{_escape(g)}">{_escape(g)}</button>')
+        import re
+        num = re.search(r'\d+$', g)
+        key = f'filter-group-gr{num.group()}' if num else f'filter-group-{_escape(g)}'
+        buttons.append(f'    <button class="day-pill" data-group="{_escape(g)}" data-i18n="{key}">{_escape(g)}</button>')
     return "\n".join(buttons)
 
 

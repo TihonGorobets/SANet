@@ -14,6 +14,9 @@
       'stat-location': 'Łucka 11, Warszawa',
       'filter-group-label': 'Grupa:',
       'filter-all-groups':  'Wszystkie grupy',
+      'filter-group-gr1':   'Zarządzanie II gr1',
+      'filter-group-gr2':   'Zarządzanie II gr2',
+      'filter-group-gr3':   'Zarządzanie II gr3',
       'filter-day-label':   'Dzień:',
       'filter-all-days':    'Wszystkie',
       'days': { pn:'Poniedziałek', wt:'Wtorek', sr:'Środa', czw:'Czwartek', pi:'Piątek', sob:'Sobota', nd:'Niedziela' },
@@ -57,6 +60,9 @@
       'stat-location': 'Łucka 11, Варшава',
       'filter-group-label': 'Група:',
       'filter-all-groups':  'Усі групи',
+      'filter-group-gr1':   'Менеджмент II гр1',
+      'filter-group-gr2':   'Менеджмент II гр2',
+      'filter-group-gr3':   'Менеджмент II гр3',
       'filter-day-label':   'День:',
       'filter-all-days':    'Усі',
       'days': { pn:'Понеділок', wt:'Вівторок', sr:'Середа', czw:'Четвер', pi:'П\'ятниця', sob:'Субота', nd:'Неділя' },
@@ -100,6 +106,9 @@
       'stat-location': 'Łucka 11, Warsaw',
       'filter-group-label': 'Group:',
       'filter-all-groups':  'All groups',
+      'filter-group-gr1':   'Management II gr1',
+      'filter-group-gr2':   'Management II gr2',
+      'filter-group-gr3':   'Management II gr3',
       'filter-day-label':   'Day:',
       'filter-all-days':    'All',
       'days': { pn:'Monday', wt:'Tuesday', sr:'Wednesday', czw:'Thursday', pi:'Friday', sob:'Saturday', nd:'Sunday' },
@@ -191,15 +200,6 @@
       arrow.textContent = '›';
       toggle.textContent = isOpen ? t('dates-hide') : t('dates-show', n);
       toggle.prepend(arrow);
-    });
-
-    // Group filter buttons — extract number, apply translated prefix
-    document.querySelectorAll('.day-pill[data-i18n-group]').forEach(btn => {
-      const raw   = btn.dataset.i18nGroup;
-      const match = raw.match(/(\d+)$/);
-      if (match) {
-        btn.textContent = `${t('group-prefix')} gr${match[1]}`;
-      }
     });
 
     // Any visible dynamic empty-group messages
