@@ -22,6 +22,11 @@
       'dates-hide':    'Ukryj terminy',
       'empty-day':     'Brak zajęć w tym dniu',
       'empty-group':   g => `Brak zajęć dla grupy ${g}`,
+      'groups': {
+        'Zarządzanie II gr1': 'Zarządzanie II gr1',
+        'Zarządzanie II gr2': 'Zarządzanie II gr2',
+        'Zarządzanie II gr3': 'Zarządzanie II gr3',
+      },
       'change-badge':  'Zmiana w planie',
       'change-new':    '✨ Nowe zajęcia',
       'change-dates':  'zaktualizowane',
@@ -64,6 +69,11 @@
       'dates-hide':    'Сховати терміни',
       'empty-day':     'Немає занять у цей день',
       'empty-group':   g => `Немає занять для групи ${g}`,
+      'groups': {
+        'Zarządzanie II gr1': 'Менеджмент II гр1',
+        'Zarządzanie II gr2': 'Менеджмент II гр2',
+        'Zarządzanie II gr3': 'Менеджмент II гр3',
+      },
       'change-badge':  'Зміна в розкладі',
       'change-new':    '✨ Нове заняття',
       'change-dates':  'оновлено',
@@ -106,6 +116,11 @@
       'dates-hide':    'Hide dates',
       'empty-day':     'No classes today',
       'empty-group':   g => `No classes for group ${g}`,
+      'groups': {
+        'Zarządzanie II gr1': 'Management II gr1',
+        'Zarządzanie II gr2': 'Management II gr2',
+        'Zarządzanie II gr3': 'Management II gr3',
+      },
       'change-badge':  'Schedule change',
       'change-new':    '✨ New class',
       'change-dates':  'updated',
@@ -188,6 +203,13 @@
       arrow.textContent = '›';
       toggle.textContent = isOpen ? t('dates-hide') : t('dates-show', n);
       toggle.prepend(arrow);
+    });
+
+    // Group filter buttons
+    document.querySelectorAll('.day-pill[data-i18n-group]').forEach(btn => {
+      const key = btn.dataset.i18nGroup;
+      const translated = ((LANGS[currentLang] || LANGS.pl).groups || {})[key];
+      btn.textContent = translated || key;
     });
 
     // Any visible dynamic empty-group messages
