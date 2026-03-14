@@ -371,7 +371,7 @@ def generate_html(
         <button class="lang-btn" data-lang="ua">UA</button>
         <button class="lang-btn" data-lang="en">EN</button>
       </div>
-      <button class="wb-open-btn" id="wbOpenBtn" aria-label="Otwórz tablicę">
+      <button class="wb-open-btn" id="wbOpenBtn" aria-label="Otwórz tablicę" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         <span data-i18n="wb-btn">Whiteboard</span>
       </button>
@@ -480,7 +480,7 @@ def generate_html(
 </script>
 
 <!-- Whiteboard overlay (shared with schedule.html) -->
-<script src="js/whiteboard.js"></script>
+<!-- <script src="js/whiteboard.js"></script> -->
 </body>
 </html>
 """
