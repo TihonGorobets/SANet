@@ -23,3 +23,4 @@ Thumbs.db
 # NOTE: zarzadzanie.html, data/last_hash.txt, data/schedule.db
 #       ARE intentionally committed – the GitHub Actions workflow writes
 #       them back to the repo after each update run.
+.env
