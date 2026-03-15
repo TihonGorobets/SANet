@@ -247,6 +247,23 @@ def fetch_all(db_path: Path = DB_PATH) -> list[dict]:
     return rows
 
 
+def fetch_changed_entries(db_path: Path = DB_PATH) -> list[dict]:
+    """Return all rows currently marked as changed (is_changed=1)."""
+    with _connect(db_path) as conn:
+        cur = conn.execute(
+            """
+            SELECT group_name, subject, class_type, day, time_start, time_end,
+                   room, instructor, change_details
+            FROM schedule
+            WHERE is_changed = 1
+            ORDER BY group_name, day, time_start
+            """
+        )
+        rows = [dict(row) for row in cur.fetchall()]
+    logger.debug("Fetched %d changed row(s).", len(rows))
+    return rows
+
+
 def set_meta(key: str, value: str, db_path: Path = DB_PATH) -> None:
     """Upsert a key/value pair in the *meta* table."""
     with _connect(db_path) as conn:

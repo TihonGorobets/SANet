@@ -25,11 +25,12 @@ import sys
 from datetime import datetime
 
 from .config import TARGET_GROUPS
-from .database import clear_changed_flags, clear_schedule, fetch_fingerprints, init_db, insert_entries, mark_changed_entries, set_meta
+from .database import clear_changed_flags, clear_schedule, fetch_changed_entries, fetch_fingerprints, init_db, insert_entries, mark_changed_entries, set_meta
 from .detector import has_changed
 from .fetcher import download_pdf, find_pdf_url
 from .generator import generate_html
 from .logging_setup import configure_logging
+from .notifier import notify_changes
 from .parser import parse_pdf
 
 
@@ -119,7 +120,15 @@ def run(*, force: bool = False, dry_run: bool = False) -> int:
         logger.error("Database update failed: %s", exc, exc_info=True)
         return 1
 
-    # ── Step 5: regenerate HTML ───────────────────────────────────────────────
+    # ── Step 5: send Telegram notification (if configured) ───────────────────
+    if n_changed > 0:
+        try:
+            changed_entries = fetch_changed_entries()
+            notify_changes(changed_entries, str(pdf_path.name))
+        except Exception as exc:
+            logger.warning("Telegram notification failed: %s", exc)
+
+    # ── Step 6: regenerate HTML ───────────────────────────────────────────────
     try:
         out = generate_html()
         logger.info("Schedule page regenerated: %s", out)
