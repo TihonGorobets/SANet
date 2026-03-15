@@ -16,13 +16,42 @@ import json
 import logging
 import os
 import urllib.request
-import urllib.parse
 import urllib.error
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 SITE_URL = "https://tihongorobets.github.io/SANet/"
+
+# ── i18n strings for notification messages ─────────────────────────────────────
+_STRINGS = {
+    "pl": {
+        "header":  "📋 <b>Zmiana w planie zajęć!</b>",
+        "source":  "Źródło",
+        "open":    "Otwórz plan",
+    },
+    "ua": {
+        "header":  "📋 <b>Зміна в розкладі занять!</b>",
+        "source":  "Джерело",
+        "open":    "Відкрити розклад",
+    },
+    "en": {
+        "header":  "📋 <b>Schedule has changed!</b>",
+        "source":  "Source",
+        "open":    "Open schedule",
+    },
+}
+
+_DAY_NAMES = {
+    "ua": {
+        "Poniedziałek": "Понеділок", "Wtorek": "Вівторок", "Środa": "Середа",
+        "Czwartek": "Четвер", "Piątek": "П'ятниця", "Sobota": "Субота", "Niedziela": "Неділя",
+    },
+    "en": {
+        "Poniedziałek": "Monday", "Wtorek": "Tuesday", "Środa": "Wednesday",
+        "Czwartek": "Thursday", "Piątek": "Friday", "Sobota": "Saturday", "Niedziela": "Sunday",
+    },
+}
 
 
 def _send(token: str, chat_id: str, text: str, *, parse_mode: str = "HTML") -> None:
@@ -54,11 +83,14 @@ def _send(token: str, chat_id: str, text: str, *, parse_mode: str = "HTML") -> N
         logger.warning("Telegram notification failed: %s", exc)
 
 
-def _format_message(changed_entries: list[dict[str, Any]], pdf_name: str) -> str:
+def _format_message(changed_entries: list[dict[str, Any]], pdf_name: str, lang: str = "pl") -> str:
     """Build an HTML-formatted Telegram message from changed DB rows."""
+    s = _STRINGS.get(lang, _STRINGS["pl"])
+    days = _DAY_NAMES.get(lang, {})
+
     lines = [
-        "📋 <b>Zmiana w planie zajęć!</b>",
-        f"Źródło: <code>{pdf_name}</code>",
+        s["header"],
+        f"{s['source']}: <code>{pdf_name}</code>",
         "",
     ]
 
@@ -72,7 +104,7 @@ def _format_message(changed_entries: list[dict[str, Any]], pdf_name: str) -> str
         lines.append(f"<b>{group}</b>")
         for e in entries:
             subject = e["subject"]
-            day = e["day"]
+            day = days.get(e["day"], e["day"])  # translate day name if available
             time_start = e["time_start"]
             time_end = e["time_end"]
             lines.append(f"  • {subject} — {day} {time_start}–{time_end}")
@@ -91,7 +123,7 @@ def _format_message(changed_entries: list[dict[str, Any]], pdf_name: str) -> str
                     lines.append(f"    <s>{field_label}: {old_val}</s> → <b>{new_val}</b>")
         lines.append("")
 
-    lines.append(f'🔗 <a href="{SITE_URL}">Otwórz plan</a>')
+    lines.append(f'🔗 <a href="{SITE_URL}">{s["open"]}</a>')
     return "\n".join(lines)
 
 
@@ -123,7 +155,14 @@ def notify_changes(
         logger.debug("No changed entries – skipping notification.")
         return
 
-    message = _format_message(changed_entries, pdf_name)
+    # Read language from bot_config.json (set via /language command)
+    try:
+        from .bot_commands import get_language
+        lang = get_language()
+    except Exception:
+        lang = "pl"
+
+    message = _format_message(changed_entries, pdf_name, lang)
     logger.info(
         "Sending Telegram notification for %d changed entr%s.",
         len(changed_entries),

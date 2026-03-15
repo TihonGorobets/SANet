@@ -45,11 +45,18 @@ jobs:
           path: |
             data/last_hash.txt
             data/schedule.db
+            data/bot_config.json
           key: schedule-data-v2-${{ runner.os }}
           restore-keys: |
             schedule-data-v2-
 
-      # ── 5. Run the updater ────────────────────────────────────────────────────
+      # ── 5. Process bot commands (/language etc.) ──────────────────────────────
+      - name: Process bot commands
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: python -m scraper.bot_commands
+
+      # ── 6. Run the updater ────────────────────────────────────────────────────
       - name: Run schedule updater
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -61,7 +68,7 @@ jobs:
           fi
           python -m scraper.main $FORCE_FLAG --log-level INFO
 
-      # ── 6. Commit changed files back to repo ─────────────────────────────────
+      # ── 7. Commit changed files back to repo ─────────────────────────────────
       - name: Commit and push changes
         run: |
           git config user.name  "github-actions[bot]"
