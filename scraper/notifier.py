@@ -56,9 +56,9 @@ _DAY_NAMES = {
 # Field label translations for change details
 _FIELD_LABELS = {
     "ua": {
-        "Sala": "Sala", "Godzina od": "Початок", "Godzina do": "Кінець",
+        "Sala": "Сала", "Godzina od": "Початок", "Godzina do": "Кінець",
         "Tryb": "Режим", "Prowadzący": "Викладач", "Daty": "Дати",
-        "room": "Sala", "time_start": "Початок", "time_end": "Кінець",
+        "room": "Сала", "time_start": "Початок", "time_end": "Кінець",
         "class_mode": "Режим", "instructor": "Викладач", "dates": "Дати",
     },
     "en": {
