@@ -53,6 +53,24 @@ _DAY_NAMES = {
     },
 }
 
+# Field label translations for change details
+_FIELD_LABELS = {
+    "ua": {
+        "Sala": "Sala", "Godzina od": "Початок", "Godzina do": "Кінець",
+        "Tryb": "Режим", "Prowadzący": "Викладач", "Daty": "Дати",
+        "room": "Sala", "time_start": "Початок", "time_end": "Кінець",
+        "class_mode": "Режим", "instructor": "Викладач", "dates": "Дати",
+    },
+    "en": {
+        "Sala": "Room", "Godzina od": "Start", "Godzina do": "End",
+        "Tryb": "Mode", "Prowadzący": "Instructor", "Daty": "Dates",
+        "room": "Room", "time_start": "Start", "time_end": "End",
+        "class_mode": "Mode", "instructor": "Instructor", "dates": "Dates",
+    },
+}
+
+_EMPTY_LABEL = {"pl": "brak", "ua": "немає", "en": "none"}
+
 
 def _send(token: str, chat_id: str, text: str, *, parse_mode: str = "HTML") -> None:
     """POST a message to the Telegram Bot API."""
@@ -87,6 +105,8 @@ def _format_message(changed_entries: list[dict[str, Any]], pdf_name: str, lang: 
     """Build an HTML-formatted Telegram message from changed DB rows."""
     s = _STRINGS.get(lang, _STRINGS["pl"])
     days = _DAY_NAMES.get(lang, {})
+    field_labels = _FIELD_LABELS.get(lang, {})
+    empty = _EMPTY_LABEL.get(lang, "—")
 
     lines = [
         s["header"],
@@ -117,9 +137,10 @@ def _format_message(changed_entries: list[dict[str, Any]], pdf_name: str, lang: 
                     except json.JSONDecodeError:
                         details = []
                 for diff in details:
-                    field_label = diff.get("label", diff.get("field", ""))
-                    old_val = diff.get("old", "")
-                    new_val = diff.get("new", "")
+                    raw_label = diff.get("label", diff.get("field", ""))
+                    field_label = field_labels.get(raw_label, raw_label)
+                    old_val = diff.get("old", "") or empty
+                    new_val = diff.get("new", "") or empty
                     lines.append(f"    <s>{field_label}: {old_val}</s> → <b>{new_val}</b>")
         lines.append("")
 
