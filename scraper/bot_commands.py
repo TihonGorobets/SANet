@@ -95,16 +95,28 @@ def _api(token: str, method: str, payload: dict) -> dict:
         return {}
 
 
-def _reply(token: str, chat_id: int, text: str) -> None:
-    result = _api(token, "sendMessage", {
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": "HTML",
-    })
+def _reply(token: str, chat_id: int, text: str, reply_markup: dict | None = None) -> None:
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    result = _api(token, "sendMessage", payload)
     if result.get("ok"):
         logger.info("Replied to chat %s.", chat_id)
     else:
         logger.warning("Failed to reply to chat %s: %s", chat_id, result)
+
+
+def _answer_callback(token: str, callback_query_id: str) -> None:
+    _api(token, "answerCallbackQuery", {"callback_query_id": callback_query_id})
+
+
+_LANG_KEYBOARD = {
+    "inline_keyboard": [[
+        {"text": "Polski 🇵🇱",     "callback_data": "lang:pl"},
+        {"text": "Українська 🇺🇦", "callback_data": "lang:ua"},
+        {"text": "English 🇬🇧",    "callback_data": "lang:en"},
+    ]]
+}
 
 
 # ── Command processing ─────────────────────────────────────────────────────────
@@ -113,6 +125,27 @@ def _handle_update(token: str, update: dict, config: dict) -> bool:
     """
     Process a single update. Returns True if config was modified.
     """
+    # ── Inline keyboard button press ──────────────────────────────────────────
+    callback = update.get("callback_query")
+    if callback:
+        data = callback.get("data", "")
+        chat_id = callback["message"]["chat"]["id"]
+        _answer_callback(token, callback["id"])
+
+        if data.startswith("lang:"):
+            chosen = data[5:]
+            if chosen in SUPPORTED_LANGS:
+                config["language"] = chosen
+                lang = config.get("language", "pl")
+                strings = REPLIES[chosen]
+                _reply(token, chat_id, strings["lang_set"].format(
+                    lang_label=LANG_LABELS[chosen]
+                ))
+                logger.info("Language changed to '%s' via button by chat %s.", chosen, chat_id)
+                return True
+        return False
+
+    # ── Text command ──────────────────────────────────────────────────────────
     message = update.get("message") or update.get("channel_post")
     if not message:
         return False
@@ -130,15 +163,15 @@ def _handle_update(token: str, update: dict, config: dict) -> bool:
 
     if command == "/language":
         if len(parts) == 1:
-            # Show current language
-            _reply(token, chat_id, strings["lang_current"].format(
-                lang_label=LANG_LABELS.get(lang, lang)
-            ))
+            # Show current language + selection buttons
+            _reply(token, chat_id,
+                   strings["lang_current"].format(lang_label=LANG_LABELS.get(lang, lang)),
+                   reply_markup=_LANG_KEYBOARD)
             return False
 
         chosen = parts[1].lower()
         if chosen not in SUPPORTED_LANGS:
-            _reply(token, chat_id, strings["lang_invalid"])
+            _reply(token, chat_id, strings["lang_invalid"], reply_markup=_LANG_KEYBOARD)
             return False
 
         config["language"] = chosen
@@ -166,7 +199,7 @@ def poll_and_process(token: str) -> None:
     result = _api(token, "getUpdates", {
         "offset": offset,
         "timeout": 0,
-        "allowed_updates": ["message", "channel_post"],
+        "allowed_updates": ["message", "channel_post", "callback_query"],
     })
 
     if not result.get("ok"):
