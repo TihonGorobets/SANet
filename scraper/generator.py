@@ -9,6 +9,7 @@ the same ``css/styles.css`` and ``js/app.js`` apply without modification.
 
 import json
 import logging
+import re
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -281,11 +282,20 @@ def _day_section_html(
     )
 
 
+def _short_group_name(full_name: str) -> str:
+    """Extract short display name: 'Zarządzanie II gr1' → 'Gr 1'."""
+    m = re.search(r'gr(\d+)$', full_name, re.IGNORECASE)
+    if m:
+        return f"Gr {m.group(1)}"
+    return full_name
+
+
 def _build_group_tabs(groups: list[str]) -> str:
-    """Build a tab bar so visitors can filter by group."""
-    buttons = ['    <button class="day-pill active" data-group="all" data-i18n="filter-all-groups">Wszystkie grupy</button>']
+    """Build group filter pill buttons (short display names)."""
+    buttons = ['        <button class="day-pill active" data-group="all" data-i18n="filter-all-groups">Wszystkie grupy</button>']
     for g in groups:
-        buttons.append(f'    <button class="day-pill" data-group="{_escape(g)}">{_escape(g)}</button>')
+        short = _short_group_name(g)
+        buttons.append(f'        <button class="day-pill" data-group="{_escape(g)}">{_escape(short)}</button>')
     return "\n".join(buttons)
 
 
@@ -322,10 +332,10 @@ def generate_html(
     for day_name in _DAY_ORDER:
         meta  = DAY_MAP.get(day_name, {"short": day_name[:2].lower()})
         short = meta["short"]
-        day_pills.append(f'    <button class="day-pill" data-filter="{short}">{day_name}</button>')
+        day_pills.append(f'        <button class="day-pill" data-filter="{short}">{day_name}</button>')
 
     day_pills_str = (
-        '    <button class="day-pill active" data-filter="all" data-i18n="filter-all-days">Wszystkie</button>\n'
+        '        <button class="day-pill active" data-filter="all" data-i18n="filter-all-days">Wszystkie</button>\n'
         + "\n".join(day_pills)
     )
 
@@ -392,16 +402,33 @@ def generate_html(
     <div class="stat-chip"><span class="dot" style="background:#F59E0B"></span><span data-i18n="stat-location">Łucka 11, Warszawa</span></div>
   </div>
 
-  <!-- ── GROUP FILTER ─────────────────────────────────────────────────────── -->
-  <div class="day-filter" role="group" aria-label="Filtruj według grupy" id="groupFilter">
-    <span class="day-filter-label" data-i18n="filter-group-label">Grupa:</span>
-{_build_group_tabs(groups)}
-  </div>
+  <!-- ── FILTERS PANEL ─────────────────────────────────────────────────────── -->
+  <div class="filters-panel">
 
-  <!-- ── DAY FILTER ────────────────────────────────────────────────────────── -->
-  <div class="day-filter" role="group" aria-label="Filtruj według dnia">
-    <span class="day-filter-label" data-i18n="filter-day-label">Dzień:</span>
+    <!-- Group filter -->
+    <div class="filter-row" role="group" aria-label="Filtruj według grupy" id="groupFilter">
+      <span class="filter-row-label">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span data-i18n="filter-group-label">Grupa:</span>
+      </span>
+      <div class="filter-pills">
+{_build_group_tabs(groups)}
+      </div>
+    </div>
+
+    <div class="filter-divider"></div>
+
+    <!-- Day filter -->
+    <div class="filter-row" role="group" aria-label="Filtruj według dnia">
+      <span class="filter-row-label">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span data-i18n="filter-day-label">Dzień:</span>
+      </span>
+      <div class="filter-pills filter-pills-scroll">
 {day_pills_str}
+      </div>
+    </div>
+
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
