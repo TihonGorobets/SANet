@@ -56,6 +56,12 @@
       --shadow-hover:  0 8px 24px rgba(96,165,250,.15), 0 2px 6px rgba(0,0,0,.35);
     }
 
+    [data-theme="dark"] body {
+      background-image:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(37,99,235,.15) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(124,58,237,.12) 0%, transparent 70%);
+    }
+
     /* ─────────────────────────────────────────────────────────────────────────
        RESET & BASE
     ───────────────────────────────────────────────────────────────────────── */
@@ -66,6 +72,10 @@
     body {
       font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(37,99,235,.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(124,58,237,.05) 0%, transparent 70%);
+      background-attachment: fixed;
       color: var(--text-primary);
       min-height: 100vh;
       transition: background var(--transition), color var(--transition);
