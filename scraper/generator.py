@@ -457,7 +457,7 @@ def generate_html(
 
 </div><!-- /page-wrapper -->
 
-<script src="js/app.js"></script>
+<script src="js/app.js?v=2"></script>
 <script>
   /* ── GROUP FILTER ──────────────────────────────────────────────────────── */
   (function () {{
