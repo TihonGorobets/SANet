@@ -305,7 +305,5 @@
         badge.textContent = t('today-badge');
         header.appendChild(badge);
       }
-      // Auto-scroll to today on load
-      setTimeout(() => todaySection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
     }
   })();
