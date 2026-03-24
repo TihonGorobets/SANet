@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import DAY_MAP, OUTPUT_HTML, TARGET_GROUPS
-from .database import fetch_all
+from .database import fetch_all, get_meta
 
 logger = logging.getLogger(__name__)
 
@@ -341,6 +341,7 @@ def generate_html(
 
     now = datetime.now(timezone.utc).strftime("%d.%m.%Y")
     groups_summary = ", ".join(groups) if groups else "Zarządzanie"
+    source_pdf = get_meta("source_pdf") or "—"
 
     html = f"""<!DOCTYPE html>
 <html lang="pl" data-theme="light">
@@ -451,7 +452,8 @@ def generate_html(
   <footer class="site-footer">
     <p><span data-i18n="footer-generated">Plan wygenerowany:</span> <strong>{now}</strong> &bull;
        <span data-i18n="footer-groups">Grupy:</span> <strong>{_escape(groups_summary)}</strong> &bull;
-       <span data-i18n="footer-source">Źródło:</span> <a href="https://san.edu.pl/plany-zajec-warszawa/studia-stacjonarne" target="_blank" rel="noopener noreferrer">san.edu.pl</a></p>
+       <span data-i18n="footer-source">Źródło:</span> <a href="https://san.edu.pl/plany-zajec-warszawa/studia-stacjonarne" target="_blank" rel="noopener noreferrer">san.edu.pl</a> &bull;
+       PDF: <strong>{_escape(source_pdf)}</strong></p>
     <p style="margin-top:4px" data-i18n="footer-disclaimer">Prosimy o sprawdzanie planu przed zajęciami. Plan oraz sale mogą ulec zmianie.</p>
   </footer>
 
